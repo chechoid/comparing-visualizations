@@ -12,14 +12,31 @@ output:
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.retina = 3)
 ```
 
-## R Markdown
+# Intro
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+This post is inspired by a [discussion in LinkedIn](https://www.linkedin.com/posts/paulvanderlaken_think-twice-before-plotting-your-boxes-activity-6899369243398193152-63Y0) about the good and the ugly about boxplots vs. the scatter plots posted by [Paul van der Laken, PhD](https://www.linkedin.com/in/paulvanderlaken/) in which he cites an article by [Nick Desbarats](https://www.linkedin.com/in/nickdesbarats/) titled **"I've stopped using boxplots. Should you?"**, a very thought provoking piece that [you can read here](https://nightingaledvs.com/ive-stopped-using-box-plots-should-you/).
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+Even though I agree with the general idea that simpler is better, and you have to always think first in your audience and whether they would understand or not a plot, in my opinion there is no a *best type of plot* over other. A plot should be used with a purpose.
 
-```{r cars}
-summary(cars)
+Another point against boxplots is that they are complex to understand, and you need people with statistical comprehension to read them. Which is true. Considering I work mainly with HR professionals and statistics is not our main strength, boxplots condense a lot of statistical information. So, why bother?
+
+![An explanation of all the information a boxplot provides (outliers, quartiles 1 and 3, median)](https://miro.medium.com/max/1838/1*2c21SkzJMf3frPXPAR_gZA.png "Statistical Information of a Boxplot"){width="456"}
+
+In my opinion, even if you are making a pie chart or a bar chart, you always have to explain what the visualization is saying, specially if you are using some other type of chart people is no familiar with. Don't assume your audience will interpret the plot the same way you intended to.
+
+![Don't assume the user will know how to read the plot](https://github.com/chechoid/comparing-visualizations/blob/main/images/bull-terrier.png?raw=true){width="349"}
+
+Nick's argument is that boxplots are complex to
+
+```{r data_libraries}
+# Libraries & Data ----
+library(tidyverse)
+library(funModeling)
+
+# Data
+salaries <- read.csv("https://raw.githubusercontent.com/r4hr/r4hr_introduccion_dplyr/main/Datos/encuesta_sueldos.csv",
+                     sep = ",",
+                     encoding = "UTF-8")
 ```
 
 ## Including Plots
