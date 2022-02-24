@@ -14,37 +14,337 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.retina 
 
 # Intro
 
-This post is inspired by a [discussion in LinkedIn](https://www.linkedin.com/posts/paulvanderlaken_think-twice-before-plotting-your-boxes-activity-6899369243398193152-63Y0) about the good and the ugly about boxplots vs. the scatter plots posted by [Paul van der Laken, PhD](https://www.linkedin.com/in/paulvanderlaken/) in which he cites an article by [Nick Desbarats](https://www.linkedin.com/in/nickdesbarats/) titled **"I've stopped using boxplots. Should you?"**, a very thought provoking piece that [you can read here](https://nightingaledvs.com/ive-stopped-using-box-plots-should-you/).
+This post is inspired by a [discussion in LinkedIn](https://www.linkedin.com/posts/paulvanderlaken_think-twice-before-plotting-your-boxes-activity-6899369243398193152-63Y0) about the good and the ugly about boxplots vs. the scatter plots. The post was written by [Paul van der Laken, PhD](https://www.linkedin.com/in/paulvanderlaken/) in which he cites an article by [Nick Desbarats](https://www.linkedin.com/in/nickdesbarats/) titled **"I've stopped using boxplots. Should you?"**, a very thought provoking piece that [you can read here](https://nightingaledvs.com/ive-stopped-using-box-plots-should-you/).
 
-Even though I agree with the general idea that simpler is better, and you have to always think first in your audience and whether they would understand or not a plot, in my opinion there is no a *best type of plot* over other. A plot should be used with a purpose.
+I don't want to prove Nick and Paul wrong, that's not the goal of this post. I actually loved Nick's article. During the discussion along the comments I provided an example where a boxplot was useful and I was challenged to make a violin plot, so that's why I'm writing this post. It's fair to mention that I don't consider myself an expert, but I'm an enthusiastic People Analytics practitioner, and from time to time, it's nice to have a debate in which ideas can be challenged.
 
-Another point against boxplots is that they are complex to understand, and you need people with statistical comprehension to read them. Which is true. Considering I work mainly with HR professionals and statistics is not our main strength, boxplots condense a lot of statistical information. So, why bother?
+Even though I agree with the general idea of Nick's article that simpler is better, and that you have to always think first in your audience and whether they would understand or not a plot, in my opinion there is no a *best type of plot* over other. A plot should be used with a purpose.
+
+Another point against boxplots is that they are complex to understand, and you need people with statistical comprehension to read them. Which is true. Considering I work mainly with HR professionals and statistics is not our main strength, and since boxplots condense a lot of statistical information that means that most of my audience won't understand them. So, why bother?
 
 ![An explanation of all the information a boxplot provides (outliers, quartiles 1 and 3, median)](https://miro.medium.com/max/1838/1*2c21SkzJMf3frPXPAR_gZA.png "Statistical Information of a Boxplot"){width="456"}
 
-In my opinion, even if you are making a pie chart or a bar chart, you always have to explain what the visualization is saying, specially if you are using some other type of chart people is no familiar with. Don't assume your audience will interpret the plot the same way you intended to.
+In my opinion, even if you are making a pie chart or a bar chart, you always have to explain what the visualization is saying, specially if you are using some other type of chart people is no familiar with. Don't assume your audience will interpret the plot the same way you intended to. Pay attention to [Hans Rosling's Ted Talks](https://www.ted.com/speakers/hans_rosling) and how he always explains how to interpret his visualizations.
 
 ![Don't assume the user will know how to read the plot](https://github.com/chechoid/comparing-visualizations/blob/main/images/bull-terrier.png?raw=true){width="349"}
 
-Nick's argument is that boxplots are complex to
+Even though boxplots are hard to understand, specially for HR professionales, I believe they can be useful for people that work in Compensation and Benefits for instance since they constantly work with medians and salary bands.
+
+And I believe every plot serves a purpose. For instance, in commercial presentations, I'd always include a sankey chart for the *Wow Effect* but I've barely used it in production because my clients wouldn't know how to read them. So, my point is that **you always have to use a visualization the user and the audience will understand.**
+
+So, given all that, let's load some data and compare some plots! 🤓
+
+# The data
+
+The data we are going to see, is a open salary survey developed by a Latin American RUG called [R4HR Club de R para RRHH](https://r4hr.club/), a community for learning how to use R for Spanish-speaking people that work or want to work in Human Resource. You can find the raw data and our full analysis in [this link](https://rpubs.com/Data4HR/encuesta-kiwi-2020) (it's in Spanish 🤷🏻).
+
+So first, let's load some libraries and a subset of the data. If you don't want to see all the data preparation process, simply go to **Comparing visualizations** in the left menu.
+
+## Data preparation
+
+I'm loading data from the original source. That's why this requires some data cleaning. The data is filter to show only the results from Argentina, and I made some calculations to estimate part time salaries as equivalent to a full time salary. That's what I'm going to use as data to make the visualizations.
 
 ```{r data_libraries}
 # Libraries & Data ----
-library(tidyverse)
-library(funModeling)
+library(tidyverse)    # For data wrangling and cleansing
+library(funModeling)  # For EDA and some data cleansing... and much more
+library(gt)           # For displaying tables
+library(scales)       # For adjusments on the axis display of the plots
+library(googlesheets4) # Reading files from Google Sheets
+library(gargle)       # Handling special characters from Spanish
 
 # Data
-salaries <- read.csv("https://raw.githubusercontent.com/r4hr/r4hr_introduccion_dplyr/main/Datos/encuesta_sueldos.csv",
-                     sep = ",",
-                     encoding = "UTF-8")
+salaries <- read_sheet("1aeuu9dVfN42EjyvbmhEcsf0ilSz2DiXU-0MpnF896ss") %>% 
+    select(gender = "Género",
+           role = "¿En qué puesto trabajás?",
+           gross_salary = "¿Cuál es tu remuneración BRUTA MENSUAL en tu moneda local? (antes de impuestos y deducciones)",
+           country = "País en el que trabajas",
+           work_type = "Trabajo",
+           work_hours = "Tipo de contratación") %>% 
+  filter(country == "Argentina",
+         work_type == "Relación de Dependencia",
+         gender %in% c("Femenino", "Masculino")) %>% 
+  select(-country, -work_type)
+
+## Clean data (you can't hide from it) ----
+salaries <- salaries %>% 
+  mutate(gross_salary = as.numeric(unlist(gross_salary)))
+
+# Add a column to estimate full time salary for part time workers
+salaries <- salaries %>% 
+  mutate(multiplier = if_else(work_hours == "Part time", 1.5, 1),
+         ft_salary = gross_salary * multiplier) %>% 
+  select(-work_hours, -multiplier, -gross_salary)
+
+# Filter and unify roles 
+salaries <- salaries %>% 
+  filter(role != "Juzgado Civil y Comercial",
+         role != "Programador",
+         role != "Cuidado",
+         role != "Asesor",
+         role != "Jefe de Proyecto") %>% 
+  mutate(role = str_trim(role, side = "both"), # Elimina espacios vacíos
+         role = fct_collapse(role, "Gerente" = "Superintendente"),
+         role = fct_collapse(role, "Director" = "Director ( escalafón municipal)"),
+         role = fct_collapse(role, "HRBP" = c("Senior Consultoría", "specialist", "especialista",
+                                                  "Especialista en selección IT", "Recruiter")),
+         role = fct_collapse(role, "Responsable" = c("Coordinación", "Coordinador de Payroll",
+                                                         "Encargado", "Supervisor")),
+         role = fct_collapse(role, "Administrativo" = c("Asistente", "Asistente RRHH", "Aux", 
+                                                            "Capacitador", "Consultor Ejecutivo",
+                                                            "consultor jr")),
+         role = fct_collapse(role, "Analista" = c("Asesoramiento", "Consultor", "Generalista", 
+                                                      "Reclutadora", "Selectora", "Senior"))) 
+
+# Filter roles to analyze
+salaries <- salaries %>% 
+  filter(role %in% c("Analista", "HRBP", "Responsable",
+                     "Jefe", "Gerente"))
+
+# Write a csv file to share
+write_delim(salaries, file = "hr_salaries_arg.csv",
+            delim = ";")
 ```
 
-## Including Plots
+I typically like to customize my charts, so I usually do this modifications.
 
-You can also embed plots, for example:
+```{r chart_settings}
+options(scipen = 999)   # Modifies the scientific notations of plots to nominal values
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+extrafont::loadfonts(quiet = TRUE) # Loads different fonts into R
+
+# Clean style with grey horizontal lines
+styleh <- theme(panel.grid = element_blank(),
+                 plot.background = element_rect(fill = "#FBFCFC"),
+                 panel.background = element_blank(),
+                 panel.grid.major.y = element_line(color = "#AEB6BF"),
+                 text = element_text(family = "Roboto"),
+                plot.title.position = "plot")
+
+stylev <- theme(panel.grid = element_blank(),
+                 plot.background = element_rect(fill = "#FBFCFC"),
+                 panel.background = element_blank(),
+                 panel.grid.major.x = element_line(color = "#AEB6BF"),
+                 text = element_text(family = "Roboto"),
+                 plot.title.position = "plot")
+
+
+# Modify the way the y axis is displayed
+axis_x_n <- scale_x_continuous(labels = comma_format(big.mark = ".", decimal.mark = ","))
+axis_y_n <- scale_y_continuous(labels = comma_format(big.mark = ".", decimal.mark = ","))
+
+
+# Colors
+gender_colors <- genero <- c("#8624F5", "#1FC3AA") # Purple and green (sort of :p)
+
+# Data source for plot's caption
+fuente <- "Data Source: Encuesta KIWI de Sueldos de RRHH LATAM 2020\nR4HR Club de R para RRHH"
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+The data was collected in Spanish, so let's translate the values into English first and summarise the information:
+
+```{r translate}
+# Translate values
+salaries <- salaries %>% 
+  mutate(gender = fct_recode(gender, "Female" = "Femenino",
+                             "Male" = "Masculino"),
+         role = fct_recode(role, "Analyst" = "Analista",
+                           "Supervisor" = "Responsable",
+                           "Head" = "Jefe",
+                           "Manager" = "Gerente"),
+         role = fct_relevel(role, c("Analyst", "HRBP", "Supervisor",
+                                   "Head", "Manager"))) 
+
+# Let's make a summary analysis of the data
+summary(salaries)
+```
+
+There are a couple of unusual values. First the minimum value, that's clearly a mistake (or a bad intended person), and the maximum value, that could possible, but highly unusual for the Argentinean market. If we make a histogram, the result would be awkward.
+
+```{r hist-1}
+ggplot(salaries, aes(x = ft_salary)) +
+  geom_histogram() +
+  labs(title = "Gross Salary Distribution in HR",
+       subtitle = "Data from Argentina | In AR$",
+       x = NULL, y = NULL,
+       caption = fuente) +
+  axis_x_n +
+  styleh
+```
+
+This is where `funModeling` comes handy. The `profiling_num` function delivers a table with a lot of descriptive statistics for numerical variables.
+
+```{r cleaning_num}
+(numerical <- profiling_num(salaries))
+```
+
+Since I want to analyze central values of the salaries, I'll filter everything beyond the percentiles 5 and 95.
+
+```{r cleaning_num2}
+# Store percentiles 5 and 95 to filter
+p05 <- numerical[1,6]
+p95 <- numerical[1,10]
+
+# Filter values within the p05 a p95 values
+salaries <- salaries %>% 
+  filter(between(    # Supporting function
+    ft_salary,    # Variable to filter
+    p05,             # Minimum threshold
+    p95              # Maximun threshold
+  ))
+
+# Now I can remove the objects I would no longer use
+rm(numerical, p05, p95)
+```
+
+Now that we have a cleaner version of the data we can start comparing the visualizations:
+
+```{r hist-2}
+ggplot(salaries, aes(x = ft_salary)) +
+  geom_histogram() +
+  labs(title = "Gross Salary Distribution in HR | Clean Data",
+       subtitle = "Data from Argentina | In AR$",
+       x = NULL, y = NULL,
+       caption = fuente) +
+  axis_x_n +
+  styleh
+```
+
+# Comparing visualizations
+
+![Credits: Allison Horst \@allison_horst](https://pbs.twimg.com/media/EKHdk4IU8AAQ_XB.jpg){width="399"}
+
+Why would I use a boxplot instead of a simple bar plot? Let's give a try using a bar chart to compare the median salary for both men and women in each role:
+
+```{r barplot}
+salaries %>% 
+  group_by(role, gender) %>% 
+  summarise(median_salary = median(ft_salary)) %>% 
+  ggplot(aes(x = role, y = median_salary, fill = gender)) +
+  geom_col(position = "dodge") +
+  scale_fill_manual(values = gender_colors) +
+  axis_y_n +
+  styleh +
+  labs(title = "Median Salary per Role and Gender in HR",
+       subtitle = "Data from Argentina | In AR$",
+       y = "Median Salary in AR$",
+       x = NULL,
+       fill = "Gender",
+       caption = fuente)
+```
+
+So if we look at each bar we can see that the pay gap for *Analyst* and *Supervisor* is larger than in the other roles, so male HR people earns more than their female colleagues. But when we look into *HRBPs* and *Managers*, the median salary for women is slightly higher than men, and even in the *Head* role, the gap is quite close. So with this evidence we could say that the gender salary gap in Human Resources in Argentina it's not a issue, but...
+
+![](https://media.giphy.com/media/9AIo1aJjtVTDd7D3wc/giphy.gif){width="408"}
+
+## Boxplots
+
+In the discussion in LinkedIn, Nick Desbarats said that he struggles to come up with use cases in which boxplots would be the best choice, so I shared this plot:
+
+```{r boxplot}
+ggplot(salaries, aes(x = role, y = ft_salary, fill = gender)) +
+  geom_boxplot() +
+  scale_fill_manual(values = gender_colors) +
+  axis_y_n +
+  styleh +
+  labs(title = "Salary Distribution in HR Roles in Argentina",
+       subtitle = "In AR$",
+       y = "Gross Salary in AR$",
+       x = NULL,
+       fill = "Gender",
+       caption = fuente)
+```
+
+What I like about this visualization is that we can see the distribution of the salaries by the size of the halves of the boxes. Les take for instance the *Head* position. The medians are similar, but in the case of women the bottom half of the box is larger, so that means that the range of salaries for women is broader. That tells us that there are women in *Head* position with salaries far below the median.
+
+The opposite happens with male professionals in the *Head* position. The top half of the box is larger meaning that there are men in the *Head* position with salaries far above the median.
+
+But Nick has a point. How many data points we have? 3, 15, 300? We can't tell from this plot. So he suggested to try a **violin chart**. So let's see what goes on:
+
+## Violin chart
+
+```{r violin}
+ggplot(salaries, aes(x = role, y = ft_salary, fill = gender)) +
+  geom_violin() +
+  scale_fill_manual(values = gender_colors) +
+  axis_y_n +
+  styleh +
+  labs(title = "Salary Distribution in HR Roles in Argentina",
+       subtitle = "In AR$",
+       y = "Gross Salary in AR$",
+       x = NULL,
+       fill = "Gender",
+       caption = fuente)
+```
+
+Given the amount of roles we can't appreciate the value of this kind of chart. So let's repeat it only with *Analysts* and *Managers.*
+
+```{r violin2}
+salaries %>% 
+  filter(role %in% c("Analyst", "Manager")) %>% 
+  ggplot(aes(x = role, y = ft_salary, fill = gender)) +
+  geom_violin() +
+  scale_fill_manual(values = gender_colors) +
+  axis_y_n +
+  styleh +
+  labs(title = "Salary Distribution in HR Roles in Argentina",
+       subtitle = "In AR$",
+       y = "Gross Salary in AR$",
+       x = NULL,
+       fill = "Gender",
+       caption = fuente)
+
+```
+
+The width of each plot indicates that the region is populated with more cases. So, for male managers we can see that most of them are close to the median. The lenght of the plots indicates the range of the values. So, in the case of female managers the range goes from around AR\$ 50.000 up to close to AR\$ 200.000 and the width is quite even all along the data points.
+
+In the case of the Analysts, for women we can see that there are wider section around AR\$ 50.000 and the start to narrow to the top. In the case of men the widest part is above than women, and the range expands to greater values.
+
+Perhaps for this dataset, the violin chart is not the most suitable case. Let's try a **scatter plot**.
+
+## Scatter plot
+
+Another way we can see the distribution of the data points is the scatter plot. We tend to see them for relationships between two numerical variables, but we can use it with nominal variables as well.
+
+```{r scatter_plot}
+ggplot(salaries, aes(x = role, y = ft_salary, color = gender)) +
+  geom_point(size = 3,
+             alpha = 0.2,
+             position = position_jitter(0.3)) +
+  scale_color_manual(values = gender_colors) +
+  styleh +
+  axis_y_n +
+  labs(title = "Salary Distribution per Gender and Role in HR",
+       subtitle = "HR Professionals in Argentina | In AR$",
+       y = "Gross Salary in AR$",
+       x = NULL,
+       color = "Gender",
+       caption = fuente)
+```
+
+Again, for this dataset, the scatter plot can be more confusing because in some positions, like *Analysts* and *Supervisor* are so populated and it's hard to tell the differences by color. But for instance, for *Managers* we can appreciate the range of the salaries, and also the concentration for men.
+
+Perhaps we could split the charts in smaller charts, to see if it helps to clarify the data and its interpretation.
+
+```{r scatter_plot2, fig.height=8}
+ggplot(salaries, aes(x = gender, y = ft_salary, color = gender)) +
+  geom_point(size = 3,
+             alpha = 0.2,
+             position = position_jitter(0.22)) +
+  scale_color_manual(values = gender_colors) +
+  styleh +
+  axis_y_n +
+  labs(title = "Salary Distribution per Gender and Role in HR",
+       subtitle = "HR Professionals in Argentina | In AR$",
+       y = "Gross Salary in AR$",
+       x = NULL,
+       color = "Gender",
+       caption = fuente) +
+  facet_wrap(~role, nrow = 1)
+```
+
+Now we can appreciate in a better way all the positions of the data points, where data is more concentrated and also the different ranges of the salaries for both men and women in the different roles. So it's easier to compare and analyze the outputs and see the number of observations.
+
+# Conclusions
+
+I've started this exercise biased by own experience using different kinds of charts.
