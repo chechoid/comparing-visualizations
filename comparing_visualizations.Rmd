@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.retina 
 
 This post is inspired by a [discussion in LinkedIn](https://www.linkedin.com/posts/paulvanderlaken_think-twice-before-plotting-your-boxes-activity-6899369243398193152-63Y0) about the good and the ugly about boxplots vs. the scatter plots. The post was written by [Paul van der Laken, PhD](https://www.linkedin.com/in/paulvanderlaken/) in which he cites an article by [Nick Desbarats](https://www.linkedin.com/in/nickdesbarats/) titled **"I've stopped using boxplots. Should you?"**, a very thought provoking piece that [you can read here](https://nightingaledvs.com/ive-stopped-using-box-plots-should-you/).
 
-I don't want to prove Nick and Paul wrong, that's not the goal of this post. I actually loved Nick's article. During the discussion along the comments I provided an example where a boxplot was useful and I was challenged to make a violin plot, so that's why I'm writing this post. It's fair to mention that I don't consider myself an expert, but I'm an enthusiastic People Analytics practitioner, and from time to time, it's nice to have a debate in which ideas can be challenged.
+I don't want to prove Nick and Paul wrong, that's not the goal of this post. I actually loved Nick's article. During the discussion along the comments I provided an example where a boxplot was useful and I was asked to make a violin plot, so that's why I'm writing this post. It's fair to mention that I don't consider myself an expert, I'm an enthusiastic People Analytics practitioner, and from time to time, it's nice to have a debate in which ideas can be challenged.
 
 Even though I agree with the general idea of Nick's article that simpler is better, and that you have to always think first in your audience and whether they would understand or not a plot, in my opinion there is no a *best type of plot* over other. A plot should be used with a purpose.
 
@@ -42,13 +42,12 @@ So first, let's load some libraries and a subset of the data. If you don't want 
 
 ## Data preparation
 
-I'm loading data from the original source. That's why this requires some data cleaning. The data is filter to show only the results from Argentina, and I made some calculations to estimate part time salaries as equivalent to a full time salary. That's what I'm going to use as data to make the visualizations.
+I'm loading data from the original source. That's why this requires some data cleaning. The data is filter to show only the results from Argentina, and I made some calculations to estimate part time salaries as equivalent to a full time salary. That's what I'm going to use as data to make the visualizations. You can download a clean version of this data from this [GitHub repository](https://raw.githubusercontent.com/chechoid/comparing-visualizations/main/hr_salaries_arg.csv).
 
 ```{r data_libraries}
 # Libraries & Data ----
 library(tidyverse)    # For data wrangling and cleansing
 library(funModeling)  # For EDA and some data cleansing... and much more
-library(gt)           # For displaying tables
 library(scales)       # For adjusments on the axis display of the plots
 library(googlesheets4) # Reading files from Google Sheets
 library(gargle)       # Handling special characters from Spanish
@@ -118,14 +117,14 @@ styleh <- theme(panel.grid = element_blank(),
                  plot.background = element_rect(fill = "#FBFCFC"),
                  panel.background = element_blank(),
                  panel.grid.major.y = element_line(color = "#AEB6BF"),
-                 text = element_text(family = "Roboto"),
+                 text = element_text(family = "Poppins"),
                 plot.title.position = "plot")
 
 stylev <- theme(panel.grid = element_blank(),
                  plot.background = element_rect(fill = "#FBFCFC"),
                  panel.background = element_blank(),
                  panel.grid.major.x = element_line(color = "#AEB6BF"),
-                 text = element_text(family = "Roboto"),
+                 text = element_text(family = "Poppins"),
                  plot.title.position = "plot")
 
 
@@ -159,12 +158,12 @@ salaries <- salaries %>%
 summary(salaries)
 ```
 
-There are a couple of unusual values. First the minimum value, that's clearly a mistake (or a bad intended person), and the maximum value, that could possible, but highly unusual for the Argentinean market. If we make a histogram, the result would be awkward.
+There are a couple of unusual values. First the minimum value, that's clearly a mistake (or a bad intended person), and the maximum value, that could be possible, but it's highly unusual for the Argentinean market. If we make a histogram, the result would be awkward.
 
 ```{r hist-1}
 ggplot(salaries, aes(x = ft_salary)) +
   geom_histogram() +
-  labs(title = "Gross Salary Distribution in HR",
+  labs(title = paste0("Gross Salary Distribution in HR ", emo::ji("scream")),
        subtitle = "Data from Argentina | In AR$",
        x = NULL, y = NULL,
        caption = fuente) +
@@ -259,9 +258,15 @@ What I like about this visualization is that we can see the distribution of the 
 
 The opposite happens with male professionals in the *Head* position. The top half of the box is larger meaning that there are men in the *Head* position with salaries far above the median.
 
-But Nick has a point. How many data points we have? 3, 15, 300? We can't tell from this plot. So he suggested to try a **violin chart**. So let's see what goes on:
+But Nick has a point. How many data points we have? 3, 15, 300? We can't tell from this plot. So he suggested to try a **violin plot**. So let's see what goes on:
 
-## Violin chart
+## Violin plot
+
+Violin plots have become an option to boxplots. They show the range of the values with its lenght and the different concentrations of the data with its width. The widest section of the plot usually indicates the median of the numerical value:
+
+[![Credits: chartio.com](https://chartio.com/assets/6f4774/tutorials/charts/violin-plots/d317bfe74829d8e85963656bd3e0a245a410e778d9a6b7a33ea6ac767f7422d0/violin-plot-example.png)](https://chartio.com/learn/charts/violin-plot-complete-guide/)
+
+Let's switch our original boxplot into a violin plot.
 
 ```{r violin}
 ggplot(salaries, aes(x = role, y = ft_salary, fill = gender)) +
@@ -300,11 +305,11 @@ The width of each plot indicates that the region is populated with more cases. S
 
 In the case of the Analysts, for women we can see that there are wider section around AR\$ 50.000 and the start to narrow to the top. In the case of men the widest part is above than women, and the range expands to greater values.
 
-Perhaps for this dataset, the violin chart is not the most suitable case. Let's try a **scatter plot**.
+Perhaps for this dataset, the violin plot is not the most suitable case to see all the roles together. Let's try a **scatter plot**.
 
 ## Scatter plot
 
-Another way we can see the distribution of the data points is the scatter plot. We tend to see them for relationships between two numerical variables, but we can use it with nominal variables as well.
+Another way we can see the distribution of the data points is with the scatter plot. We tend to see them to visualize relationships between two numerical variables, but we can use it with nominal variables as well.
 
 ```{r scatter_plot}
 ggplot(salaries, aes(x = role, y = ft_salary, color = gender)) +
@@ -322,7 +327,7 @@ ggplot(salaries, aes(x = role, y = ft_salary, color = gender)) +
        caption = fuente)
 ```
 
-Again, for this dataset, the scatter plot can be more confusing because in some positions, like *Analysts* and *Supervisor* are so populated and it's hard to tell the differences by color. But for instance, for *Managers* we can appreciate the range of the salaries, and also the concentration for men.
+Again, for this dataset, the scatter plot can be more confusing because in some positions, because *Analysts* and *Supervisor* are so populated and it's hard to tell the differences by color. But for instance, for *Managers* we can appreciate the range of the salaries, and also the concentration for men.
 
 Perhaps we could split the charts in smaller charts, to see if it helps to clarify the data and its interpretation.
 
@@ -345,6 +350,99 @@ ggplot(salaries, aes(x = gender, y = ft_salary, color = gender)) +
 
 Now we can appreciate in a better way all the positions of the data points, where data is more concentrated and also the different ranges of the salaries for both men and women in the different roles. So it's easier to compare and analyze the outputs and see the number of observations.
 
+Since I'm designing all of these visualizations, I might be biased, but in my opinion, while seeing all the roles together in one visualization the cognitive load increases to interpret the salary situation for both gender and all the roles at once.
+
 # Conclusions
 
-I've started this exercise biased by own experience using different kinds of charts.
+My perception of the plots is biased by my experience. For this specific dataset, a easier to read plot like the last scatterplot might be more difficult to extract conclusions. I acknowledge that violin plots are more sophisticated from a design point of view, and they provide a wow effect that makes you react "Wow, this looks cool" but end up having no clue of how to interpret what you are seeing.
+
+I believe it's Alberto Cairo who says visualizations are a tool to represent a complex reality in a visual encoding. So, every visualization will have some ups (simplicity for bar plots, a lot of information for boxplots) and downs (oversimplification and hiding reality for bar plots; too much information and "hiding" the amount of data points for boxplots) so we have to make conscious decisions when we use visualizations to communicate results:
+
+-   What's the best visualization that represents the story of the data.
+
+-   What's my purpose? To shock and awe? To educate? How much time do I have to explain the visualization?
+
+-   Consider how much does the audience know about data a visualization and how much they really want to improve their capabilities.
+
+-   Do we need a simple visualization that everyone understands, or should we use a more complex visualization for experts in the field?
+
+For this particular example, and for this specific dataset, and if you want to display the results of all roles in one plot, the boxplot is the best choice, because, even with its complexity, it condenses enough information to draw conclusions and comprehend the story behind the data. I think for this particular case, its consistent shape along the roles and genders reduces the cognitive load and helps the user to compare results once he or she understands how to interpret the chart.
+
+Anyway, don't take my word for granted. As I said before, I am not an expert in visualization but a People Analytics enthusiastic practitioner. So you might agree with me, or not, it's okay. I hope this post helps you to consider new angles the next time you need to use visualizations to communicate results. Ideally, I should have done this exercise with different data sets but who has the time? But I guess that reinforces my initial statement. There is not a plot that is better than other per se, there are plots the serves more properly in specific situations, and for a specific audience and with a specific purpose and depending on the data you have.
+
+If you want to reach out, just contact me through my [LinkedIn profile](https://www.linkedin.com/in/sergiogarciamora/), on [Twitter](https://twitter.com/sergiogarciamor), by [Telegram](https://t.me/SergioGarciaMora) or send me an email to [sergio\@d4hr.com](mailto:sergio@d4hr.com). You can access this repo on [GitHub](https://github.com/chechoid/comparing-visualizations) to reproduce the results. Follow [Nightingaledvs.com](https://nightingaledvs.com/) for amazing content on data visualization, it was great to navigate through their content.
+
+Thanks for reading.
+
+🤘 Sergio
+
+PS: What's your favorite plot?
+
+```{r final, fig.show='hold'}
+# Boxplot
+salaries %>% 
+  filter(role == "Analyst") %>% 
+  ggplot(aes(y = ft_salary, fill = gender)) +
+  geom_boxplot() +
+  scale_fill_manual(values = gender_colors) +
+  axis_y_n +
+  styleh +
+  labs(title = "Boxplot",
+       subtitle = "In AR$",
+       y = "Gross Salary in AR$",
+       x = NULL,
+       fill = "Gender",
+       caption = fuente)
+
+# Violin plot
+salaries %>% 
+  filter(role == "Analyst") %>% 
+  ggplot(aes(x = role, y = ft_salary, fill = gender)) +
+  geom_violin() +
+  scale_fill_manual(values = gender_colors) +
+  axis_y_n +
+  styleh +
+  labs(title = "Violin Plot",
+       y = "Gross Salary in AR$",
+       x = NULL,
+       fill = "Gender",
+       caption = fuente)
+
+# Scatter plot
+salaries %>% 
+  filter(role == "Analyst") %>% 
+ggplot(aes(x = gender, y = ft_salary, color = gender)) +
+  geom_point(size = 3,
+             alpha = 0.2,
+             position = position_jitter(0.22)) +
+  scale_color_manual(values = gender_colors) +
+  styleh +
+  axis_y_n +
+  labs(title = "Scatter Plot",
+       y = "Gross Salary in AR$",
+       x = NULL,
+       color = "Gender",
+       caption = fuente)
+```
+
+## R packages used to making this post
+
+These are the R packages I used for making this post
+
+-   **rmdformats:** Julien Barnier (2021). rmdformats: HTML Output Formats and Templates for 'rmarkdown' Documents. R package version 1.0.3. <https://CRAN.R-project.org/package=rmdformats>
+
+-   **funModeling:** Pablo Casas (2020). funModeling: Exploratory Data Analysis and Data Preparation Tool-Box. R package, version 1.9.4. <https://CRAN.R-project.org/package=funModeling>
+
+-   **tidyverse:** Wickham et al., (2019). Welcome to the tidyverse. Journal of Open Source Software, 4(43), 1686, <https://doi.org/10.21105/joss.01686>
+
+-   **scales:** Hadley Wickham and Dana Seidel (2020). scales: Scale Functions for Visualization. R package version 1.1.1. <https://CRAN.R-project.org/package=scales>
+
+-   **googlesheets4:** Jennifer Bryan (2021). googlesheets4: Access Google Sheets using the Sheets API V4. R package version 1.0.0. <https://CRAN.R-project.org/package=googlesheets4>
+
+-   **gargle:** Jennifer Bryan, Craig Citro and Hadley Wickham (2021). gargle: Utilities for Working with Google APIs. R package version 1.2.0. <https://CRAN.R-project.org/package=gargle>
+
+-   **extrafont:** Winston Chang, (2014). extrafont: Tools for using fonts. R package version 0.17. <https://CRAN.R-project.org/package=extrafont>
+
+-   **emo:** Hadley Wickham, Romain François and Lucy D'Agostino McGowan (2021). emo: Easily Insert 'Emoji'. R package version 0.0.0.9000. <https://github.com/hadley/emo>
+
+-   **rmarkdown:** JJ Allaire and Yihui Xie and Jonathan McPherson and Javier Luraschi and Kevin Ushey and Aron Atkins and Hadley Wickham and Joe Cheng and Winston Chang and Richard Iannone (2021). rmarkdown: Dynamic Documents for R. R package version 2.11. URL <https://rmarkdown.rstudio.com.>
