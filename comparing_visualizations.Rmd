@@ -9,7 +9,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.retina = 3)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.retina = 3, dpi = 300)
 ```
 
 # Intro
@@ -114,18 +114,20 @@ extrafont::loadfonts(quiet = TRUE) # Loads different fonts into R
 
 # Clean style with grey horizontal lines
 styleh <- theme(panel.grid = element_blank(),
-                 plot.background = element_rect(fill = "#FBFCFC"),
-                 panel.background = element_blank(),
-                 panel.grid.major.y = element_line(color = "#AEB6BF"),
-                 text = element_text(family = "Poppins"),
+                plot.background = element_rect(fill = "#FBFCFC"),
+                panel.background = element_blank(),
+                panel.grid.major.y = element_line(color = "#EAEDED"),
+                axis.ticks.y = element_blank(),
+                text = element_text(family = "Poppins"),
                 plot.title.position = "plot")
 
 stylev <- theme(panel.grid = element_blank(),
-                 plot.background = element_rect(fill = "#FBFCFC"),
-                 panel.background = element_blank(),
-                 panel.grid.major.x = element_line(color = "#AEB6BF"),
-                 text = element_text(family = "Poppins"),
-                 plot.title.position = "plot")
+                plot.background = element_rect(fill = "#FBFCFC"),
+                panel.background = element_blank(),
+                panel.grid.major.x = element_line(color = "#EAEDED"),
+                axis.ticks.x = element_blank(),
+                text = element_text(family = "Poppins"),
+                plot.title.position = "plot")
 
 
 # Modify the way the y axis is displayed
@@ -332,11 +334,24 @@ Again, for this dataset, the scatter plot can be more confusing because in some 
 Perhaps we could split the charts in smaller charts, to see if it helps to clarify the data and its interpretation.
 
 ```{r scatter_plot2, fig.height=8}
+# Calculate median salaries 
+median_salaries <- salaries %>%
+  group_by(gender, role) %>%
+  summarise(median_salary = median(ft_salary, na.rm = TRUE), .groups = "drop")
+
+median_salaries <- median_salaries %>%
+  mutate(x = as.numeric(as.factor(gender)) - 0.4,  # Ajusta el inicio de la línea
+         xend = as.numeric(as.factor(gender)) + 0.4) # Ajusta el final de la línea
+
 ggplot(salaries, aes(x = gender, y = ft_salary, color = gender)) +
-  geom_point(size = 3,
-             alpha = 0.2,
+  geom_point(size = 2,
+             alpha = 0.3,
              position = position_jitter(0.22)) +
   scale_color_manual(values = gender_colors) +
+  geom_segment(data = median_salaries, 
+               aes(x = x, xend = xend, y = median_salary, yend = median_salary, color = gender), 
+               size = 1,
+               show.legend = FALSE) +
   styleh +
   axis_y_n +
   labs(title = "Salary Distribution per Gender and Role in HR",
@@ -345,7 +360,19 @@ ggplot(salaries, aes(x = gender, y = ft_salary, color = gender)) +
        x = NULL,
        color = "Gender",
        caption = fuente) +
-  facet_wrap(~role, nrow = 1)
+  facet_wrap(~role, nrow = 1) +
+  theme(axis.title.y = element_text(color = "grey30", family = "Poppins"),
+        axis.text.x = element_blank(),
+        legend.position = "top",            # Mueve la leyenda arriba del gráfico
+        legend.justification = "left",      # Centra la leyenda horizontalmente
+        legend.box.just = "left",           # Alinea el contenido de la caja de la leyenda 
+        legend.margin = margin(l = -50, t = 3),
+        panel.spacing = unit(25, "pt"),
+        strip.background = element_blank(),
+        stripp.text.x = element_text(face = "bold"),
+        axis.ticks.x = element_blank())
+
+ggsave("jittered_strip.png", dpi = 300)
 ```
 
 Now we can appreciate in a better way all the positions of the data points, where data is more concentrated and also the different ranges of the salaries for both men and women in the different roles. So it's easier to compare and analyze the outputs and see the number of observations.
