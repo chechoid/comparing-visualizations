@@ -381,9 +381,9 @@ Since I'm designing all of these visualizations, I might be biased, but in my op
 
 # Conclusions
 
-My perception of the plots is biased by my experience. For this specific dataset, a easier to read plot like the last scatterplot might be more difficult to extract conclusions. I acknowledge that violin plots are more sophisticated from a design point of view, and they provide a wow effect that makes you react "Wow, this looks cool" but end up having no clue of how to interpret what you are seeing.
+My perception of the plots is biased by my experience. For this specific dataset, a easier to read plot like the last scatterplot might be more difficult to extract conclusions. I acknowledge that violin plots are more sophisticated from a design point of view, and they provide a *wow effect* that makes you react "Wow, this looks cool" but end up having no clue of how to interpret what you are seeing.
 
-I believe it's Alberto Cairo who says visualizations are a tool to represent a complex reality in a visual encoding. So, every visualization will have some ups (simplicity for bar plots, a lot of information for boxplots) and downs (oversimplification and hiding reality for bar plots; too much information and "hiding" the amount of data points for boxplots) so we have to make conscious decisions when we use visualizations to communicate results:
+I believe it's Alberto Cairo who says visualization is a tool to represent a complex reality with a visual encoding. So, every visualization will have some ups (simplicity for bar plots, a lot of information for boxplots) and downs (oversimplification and hiding reality for bar plots; too much information and "hiding" the amount of data points for boxplots) so we have to make conscious decisions when we use visualizations to communicate results:
 
 -   What's the best visualization that represents the story of the data.
 
@@ -397,7 +397,7 @@ For this particular example, and for this specific dataset, and if you want to d
 
 Anyway, don't take my word for granted. As I said before, I am not an expert in visualization but a People Analytics enthusiastic practitioner. So you might agree with me, or not, it's okay. I hope this post helps you to consider new angles the next time you need to use visualizations to communicate results. Ideally, I should have done this exercise with different data sets but who has the time? But I guess that reinforces my initial statement. There is not a plot that is better than other per se, there are plots the serves more properly in specific situations, and for a specific audience and with a specific purpose and depending on the data you have.
 
-If you want to reach out, just contact me through my [LinkedIn profile](https://www.linkedin.com/in/sergiogarciamora/), on [Twitter](https://twitter.com/sergiogarciamor), by [Telegram](https://t.me/SergioGarciaMora) or send me an email to [sergio\@d4hr.com](mailto:sergio@d4hr.com). You can access this repo on [GitHub](https://github.com/chechoid/comparing-visualizations) to reproduce the results. Follow [Nightingaledvs.com](https://nightingaledvs.com/) for amazing content on data visualization, it was great to navigate through their content.
+If you want to reach out, just contact me through my [LinkedIn profile](https://www.linkedin.com/in/sergiogarciamora/), on [Blue Sky](https://bsky.app/profile/checho-puchero.bsky.social), by [Telegram](https://t.me/SergioGarciaMora) or send me an email to [sergio.garciamora@gmail.com.com](mailto:sergio.garciamora@gmail.com). You can access this repo on [GitHub](https://github.com/chechoid/comparing-visualizations) to reproduce the results. Follow [Nightingaledvs.com](https://nightingaledvs.com/) for amazing content on data visualization, it was great to navigate through their content.
 
 Thanks for reading.
 

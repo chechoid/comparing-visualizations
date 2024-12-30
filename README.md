@@ -8,6 +8,6 @@ You can [read the post here](https://rpubs.com/Data4HR/comparing-visualizations)
 
 If you find any typo (English is not my mother tongue) please let me know.
 
-You can reach out via [LinkedIn](https://www.linkedin.com/in/sergiogarciamora/), [Twitter](https://twitter.com/sergiogarciamor), or [Telegram](https://t.me/SergioGarciaMora)
+You can reach out via [LinkedIn](https://www.linkedin.com/in/sergiogarciamora/), [Blue Sky](https://bsky.app/profile/checho-puchero.bsky.social), or [Telegram](https://t.me/SergioGarciaMora)
 
 <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Licencia Creative Commons" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br />This work is subjected to a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Atribución 4.0 Internacional License</a>.
